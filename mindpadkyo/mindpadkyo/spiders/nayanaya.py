@@ -4,8 +4,7 @@ import json
 
 class PropertySharkSpider(scrapy.Spider):
     name = "propertyshark_autocomplete"
-    city = "Texas City, TX"          # default value
-    property_type = "buildings" 
+    #default value
     custom_settings = {
         "USER_AGENT": None,
         "DOWNLOAD_HANDLERS": {
@@ -14,6 +13,10 @@ class PropertySharkSpider(scrapy.Spider):
         },
         "TWISTED_REACTOR": "twisted.internet.asyncioreactor.AsyncioSelectorReactor",
     }
+
+    def __init__(self, city="Texas City, TX", property_type="buildings"):
+        self.city = city
+        self.property_type = property_type
 
     def start_requests(self):
         city_encoded = self.city.replace(" ", "%20").replace(",", "%2C")
@@ -35,6 +38,8 @@ class PropertySharkSpider(scrapy.Spider):
             return
 
         first = content[0]
+
+        self.location_layer = first.get("location_layer")
         self.location_lcl = first.get("location_lcl")
         self.location_geo_id = first.get("location_geo_id")
         self.location_state = first.get("location_state")
@@ -50,7 +55,7 @@ class PropertySharkSpider(scrapy.Spider):
             "property_type": self.property_type,
             "view": "list",
             "nationwide_location": {
-                "location_layer": "micro",
+                "location_layer": self.location_layer,
                 "text_value": self.text_value,
                 "location_name": self.location_name,
                 "location_geo_id": self.location_geo_id,
